@@ -29,7 +29,8 @@ period_nested <- period_tidy |>
 
 data_tbl <- urls_tbl |>
   left_join(geo_nested, by = "database") |>
-  left_join(period_nested, by = "database")
+  left_join(period_nested, by = "database") |> 
+  arrange(database) # Alphabetical order
 
 # Shared data for the table
 shared_data <- SharedData$new(data_tbl)
@@ -52,7 +53,8 @@ tbl <- reactable(
     geography = colDef(show = FALSE),
     period = colDef(show = FALSE)
   ),
-  searchable = TRUE
+  searchable = TRUE,
+  sortable = FALSE # sorting would be by URL not title
 )
 ```
 
