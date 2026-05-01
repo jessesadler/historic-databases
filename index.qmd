@@ -53,6 +53,8 @@ tbl <- reactable(
     geography = colDef(show = FALSE),
     period = colDef(show = FALSE)
   ),
+  defaultPageSize = 25,
+  showPageSizeOptions = TRUE,
   searchable = TRUE,
   sortable = FALSE # sorting would be by URL not title
 )
