@@ -1,0 +1,122 @@
+---
+title: "Historical databases at Virginia Tech"
+---
+
+Use the table below to find databases with historical primary sources by geographic region and time period. Use the drop-down menus to choose a region or time period and the search box to search by database name.
+
+```{r}
+#| message: false
+library(tidyverse)
+library(reactable)
+library(htmltools)
+library(crosstalk)
+library(jsonlite)
+library(bslib)
+
+urls_tbl <- read_csv("data/urls.csv")
+geo_tidy <- read_csv("data/geography.csv")
+period_tidy <- read_csv("data/period.csv")
+```
+
+```{r}
+geo_nested <- geo_tidy |>
+  group_by(database) |>
+  summarise(geography = list(geography))
+
+period_nested <- period_tidy |>
+  group_by(database) |>
+  summarise(period = list(period))
+
+data_tbl <- urls_tbl |>
+  left_join(geo_nested, by = "database") |>
+  left_join(period_nested, by = "database")
+
+# Shared data for the table
+shared_data <- SharedData$new(data_tbl)
+
+# Shared data for the Crosstalk filters. This is a separate shared data object
+# so we can filter on columns that aren't in the table. The same group is used
+# to link the two datasets together.
+shared_databases <- SharedData$new(data_tbl, group = shared_data$groupName())
+
+tbl <- reactable(
+  shared_data,
+  columns = list(
+    # Or using raw HTML
+    link = colDef(
+      name = "Database",
+      html = TRUE
+    ),
+    database = colDef(show = FALSE),
+    url = colDef(show = FALSE),
+    geography = colDef(show = FALSE),
+    period = colDef(show = FALSE)
+  ),
+  searchable = TRUE
+)
+```
+
+
+```{r}
+# Custom Crosstalk select filter. This is a single-select input that works
+# on columns containing multiple values per row (list columns).
+select_filter <- function(id, label, shared_data, group, choices = NULL,
+                          width = "100%", class = "filter-input") {
+  values <- shared_data$data()[[group]]
+  keys <- shared_data$key()
+  if (is.list(values)) {
+    # Multiple values per row
+    flat_keys <- unlist(mapply(rep, keys, sapply(values, length)))
+    keys_by_value <- split(flat_keys, unlist(values), drop = TRUE)
+    choices <- if (is.null(choices)) sort(unique(unlist(values))) else choices
+  } else {
+    # Single value per row
+    keys_by_value <- split(seq_along(keys), values, drop = TRUE)
+    choices <- if (is.null(choices)) sort(unique(values)) else choices
+  }
+
+  script <- sprintf("
+    window['__ct__%s'] = (function() {
+      const handle = new window.crosstalk.FilterHandle('%s')
+      const keys = %s
+      return {
+        filter: function(value) {
+          if (!value) {
+            handle.clear()
+          } else {
+            handle.set(keys[value])
+          }
+        }
+      }
+    })()
+  ", id, shared_data$groupName(), toJSON(keys_by_value))
+
+  div(
+    class = class,
+    tags$label(`for` = id, label),
+    tags$select(
+      id = id,
+      onchange = sprintf("window['__ct__%s'].filter(this.value)", id),
+      style = sprintf("width: %s", validateCssUnit(width)),
+      tags$option(value = "", "All"),
+      lapply(choices, function(value) tags$option(value = value, value))
+    ),
+    tags$script(HTML(script))
+  )
+}
+```
+
+
+```{r}
+page_fluid(
+  layout_columns(
+    select_filter("filter_geo", "Geographic region", shared_databases, "geography"),
+    select_filter("filter_period", "Period", shared_databases, "period",
+                  choices = c("Medieval", "Early Modern", "1701 - 1800",
+                              "1801 - 1900", "1901 - 2000", "2001 - Present"))
+  ),
+  tbl
+)
+```
+
+Resources for this page are available on [GitHub](https://github.com/jessesadler/historical-databases).
