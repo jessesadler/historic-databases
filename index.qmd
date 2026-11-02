@@ -13,9 +13,10 @@ library(crosstalk)
 library(jsonlite)
 library(bslib)
 
-urls_tbl <- read_csv("data/urls.csv")
-geo_tidy <- read_csv("data/geography.csv")
+urls_tbl    <- read_csv("data/urls.csv")
+geo_tidy    <- read_csv("data/geography.csv")
 period_tidy <- read_csv("data/period.csv")
+theme_tidy  <- read_csv("data/theme.csv")
 ```
 
 ```{r}
@@ -27,9 +28,14 @@ period_nested <- period_tidy |>
   group_by(database) |>
   summarise(period = list(period))
 
+theme_nested <- theme_tidy |> 
+  group_by(database) |> 
+  summarise(theme = list(theme))
+
 data_tbl <- urls_tbl |>
   left_join(geo_nested, by = "database") |>
   left_join(period_nested, by = "database") |> 
+  left_join(theme_nested, by = "database") |> 
   arrange(database) # Alphabetical order
 
 # Shared data for the table
@@ -51,7 +57,8 @@ tbl <- reactable(
     database = colDef(show = FALSE),
     url = colDef(show = FALSE),
     geography = colDef(show = FALSE),
-    period = colDef(show = FALSE)
+    period = colDef(show = FALSE),
+    theme = colDef(show = FALSE)
   ),
   defaultPageSize = 25,
   showPageSizeOptions = TRUE,
@@ -119,6 +126,7 @@ page_fluid(
                   choices = c("Medieval", "Early Modern", "1701 - 1800",
                               "1801 - 1900", "1901 - 2000", "2001 - Present"))
   ),
+  select_filter("filter_theme", "Themes", shared_databases, "theme"),
   tbl
 )
 ```
