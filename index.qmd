@@ -123,4 +123,4 @@ page_fluid(
 )
 ```
 
-Resources for this page are available on [GitHub](https://github.com/jessesadler/historical-databases).
+Resources for this page are available on [GitHub](https://github.com/jessesadler/historic-databases).
