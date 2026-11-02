@@ -21,19 +21,15 @@ urls_tbl <- data_urls |>
 
 write_csv(urls_tbl, "data/urls.csv")
 
-
-
 # Geography ---------------------------------------------------------------
 
 geographic_space <- read_sheet(url, 1) |>
   rename(geography = `...1`)
 
-
 geo_tidy <- geographic_space |>
   pivot_longer(-geography, names_to = "database") |>
   filter(!is.na(value)) |>
   select(database, geography)
-
 
 write_csv(geo_tidy, "data/geography.csv")
 
@@ -49,3 +45,17 @@ period_tidy <- period |>
   select(database, period)
 
 write_csv(period_tidy, "data/period.csv")
+
+
+# Themes ------------------------------------------------------------------
+
+themes <- read_sheet(url, 5, range = "A3:AF100")
+
+themes_tidy <- themes |>
+  rename(database = "Historical Primary-Source Collections: A-Z (Front Page)") |>
+  select(database, "Genders, & Sexualities":"Books & Imprints") |>
+  pivot_longer(-database, names_to = "theme") |>
+  filter(!is.na(value)) |>
+  select(database, theme)
+
+write_csv(themes_tidy, "data/theme.csv")
