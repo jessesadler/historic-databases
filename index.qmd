@@ -2,7 +2,9 @@
 title: "Historical databases at Virginia Tech"
 ---
 
-Use the table below to find databases with historical primary sources by geographic region and time period. Use the drop-down menus to choose a region or time period and the search box to search by database name.
+This website is a prototype database finder for historical databases at Virginia Tech University Libraries.
+
+Use the table below to find databases with historical sources by geographic region, time period, and theme. Use the drop-down menus to choose a region, time period, and/or theme and the search box to search by database name.
 
 ```{r}
 #| message: false
@@ -120,15 +122,20 @@ select_filter <- function(id, label, shared_data, group, choices = NULL,
 
 ```{r}
 page_fluid(
-  layout_columns(
+  layout_column_wrap(
+    width = 1/2,
     select_filter("filter_geo", "Geographic region", shared_databases, "geography"),
     select_filter("filter_period", "Period", shared_databases, "period",
                   choices = c("Medieval", "Early Modern", "1701 - 1800",
-                              "1801 - 1900", "1901 - 2000", "2001 - Present"))
+                              "1801 - 1900", "1901 - 2000", "2001 - Present")),
+    select_filter("filter_theme", "Themes", shared_databases, "theme")
   ),
-  select_filter("filter_theme", "Themes", shared_databases, "theme"),
   tbl
 )
 ```
 
+- - - - - - - - - -
+
 Resources for this page are available on [GitHub](https://github.com/jessesadler/historic-databases).
+
+Project developed by Bruce Pencek, Paige Cole, David Watkeys, and Jesse Sadler.
